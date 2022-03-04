@@ -21,6 +21,7 @@ const blogSchema = mongoose.Schema({
     trim: true,
     required: true,
   },
+  selectedFile: String,
   // comments: {
   //   type: [{ username: String, text: String }],
   //   required: false,

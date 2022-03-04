@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import FileBase from "react-file-base64";
 
 const AddBlog = () => {
   const [blogData, setBlogData] = useState({
@@ -76,6 +77,15 @@ const AddBlog = () => {
         value={blogData.content}
         onChange={(e) => setBlogData({ ...blogData, content: e.target.value })}
       />
+      <div className="">
+        <FileBase
+          type="file"
+          multiple={false}
+          onDone={({ base64 }) =>
+            setBlogData({ ...blogData, selectedFile: base64 })
+          }
+        />
+      </div>
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         type="submit"

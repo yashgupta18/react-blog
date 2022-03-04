@@ -1,56 +1,29 @@
-const express = require("express");
-const { MongoClient } = require("mongodb");
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import bodyParser from "body-parser";
+import express from "express";
+import cors from "cors";
+import commentRoutes from "./routes/blog.js";
+
 const app = express();
-
-const withDB = async (operations, res) => {
-  try {
-    const client = await MongoClient.connect("mongodb://localhost:27017", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    const db = client.db("myblog");
-    await operations(db);
-    client.close();
-  } catch (error) {
-    res.status(500).json({ message: "wrror connecting to DB" });
-  }
-};
-
-//Get Requests for comments of a blog
-app.get("/api/articles/:name", async (req, res) => {
-  withDB(async (db) => {
-    const articleName = req.params.name;
-
-    const articleInfo = await db
-      .collection("articles")
-      .findOne({ name: articleName });
-    res.status(200).json(articleInfo);
-  }, res);
-});
-
+dotenv.config();
+app.use(bodyParser.json({ limit: "30mb", extended: true }));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(cors());
+app.use("/api", commentRoutes);
 app.use(express.json());
 
-//post username, comments in db
-app.post("/api/articles/:name/add-comments", (req, res) => {
-  const { username, text } = req.body;
-  const articleName = req.params.name;
-  withDB(async (db) => {
-    const articleInfo = await db
-      .collection("articles")
-      .findOne({ name: articleName });
-    await db.collection("articles").updateOne(
-      { name: articleName },
-      {
-        $set: {
-          comments: articleInfo.comments.concat({ username, text }),
-        },
-      }
-    );
-    const updatedArticleInfo = await db
-      .collection("articles")
-      .findOne({ name: articleName });
-    res.status(200).json(updatedArticleInfo);
-  }, res);
-});
+const PORT = process.env.PORT || 8000;
+const CONNECTION_URL =
+  "mongodb+srv://Blog:Blog123@cluster0.usxry.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+mongoose
+  .connect(CONNECTION_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() =>
+    app.listen(PORT, () => console.log(`Server running on port:${PORT} `))
+  )
+  .catch((error) => console.log(error.message));
 
-app.listen(8000, () => console.log("Listening on PORT 8000"));
+mongoose.set("useFindAndModify", false);
